@@ -1,0 +1,64 @@
+version: '2.1'
+
+services:
+  spring-boot-template:
+    container_name: tomcat
+    build:
+      context: .
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    image: hmctspublic.azurecr.io/spring-boot/template
+    environment:
+      # these environment variables are used by java-logging library
+      - ROOT_APPENDER
+      - JSON_CONSOLE_PRETTY_PRINT
+      - ROOT_LOGGING_LEVEL
+      - REFORM_SERVICE_TYPE
+      - REFORM_SERVICE_NAME
+      - REFORM_TEAM
+      - REFORM_ENVIRONMENT
+      - LOGBACK_DATE_FORMAT
+      - LOGBACK_REQUIRE_THREAD
+      - LOGBACK_REQUIRE_ALERT_LEVEL=false
+      - LOGBACK_REQUIRE_ERROR_CODE=false
+
+      # API specific environment variables
+      - ZAC_OPENAI_KEY=${ZAC_OPENAI_KEY}
+
+      # Database connection environment variables
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/chatbotdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+
+      # Database connection pool environment variables
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=chatbotdb
+      - DB_USER_NAME=postgres
+      - DB_PASSWORD=password
+
+      # Mail server environment variables
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+    ports:
+      - $SERVER_PORT:$SERVER_PORT
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: chatbotdb
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+volumes:
+  postgres-data:

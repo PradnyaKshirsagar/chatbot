@@ -1,0 +1,80 @@
+server:
+  port: 4550
+  shutdown: "graceful"
+
+management:
+  endpoint:
+    health:
+      show-details: "always"
+      group:
+        readiness:
+          include: "db"
+  endpoints:
+    web:
+      base-path: /
+      exposure:
+        include: health, info, prometheus
+
+springdoc:
+  packagesToScan:
+    - uk.gov.hmcts.reform.demo.controllers
+    - uk.gov.hmcts.reform.demo.repositories
+    - uk.gov.hmcts.reform.demo.entities
+  writer-with-order-by-keys: true
+
+openai:
+  api:
+    key: ${ZAC_OPENAI_KEY}
+
+spring:
+  config:
+    import: "optional:configtree:/mnt/secrets/rpe/"
+  application:
+    name: Spring Boot Template
+  mail:
+    host: app.debugmail.io
+    port: 9025
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/chatbotdb
+    username: ${DB_USER_NAME:postgres}
+    password: ${DB_PASSWORD:password}
+    properties:
+      charSet: UTF-8
+    hikari:
+      minimumIdle: 2
+      maximumPoolSize: 10
+      idleTimeout: 10000
+      poolName: chatbotHikariCP
+      maxLifetime: 7200000
+      connectionTimeout: 30000
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+azure:
+  application-insights:
+    instrumentation-key: ${rpe.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.web.csrf: TRACE
+    uk.gov.hmcts.reform.demo: DEBUG
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
